@@ -1,0 +1,156 @@
+// this lets you add new users to the end of a transcript (REMEMBER TO CHANGE THE URL BELOW)
+// just overwrite all of the previous transcripts in the Google Sheet
+
+
+var font = "Open Sans";
+
+// could store blues and reds in a doc we reference...
+//common core Alexa responses
+var blues = [
+  "Sorry, I don't know that.",
+  "Sorry, I don't know that one.",
+  "Sorry, I'm not sure.",
+  "Sorry, I’m not sure about that.",
+  "Hmm, I don't know that.",
+  "Hmm, I don't know that one.",
+  "Unknown",
+  "Hmm, I'm not sure.",
+  "Calling with Alexa is not supported on this device. You can use the Alexa App instead.",
+  "I can’t find that skill. To find skills, go to the Skills section of the Alexa App.",
+  "Would you like to add it to your cart?",
+  "For Help, please visit the help pages on the Amazon web site.",
+  "If you'd like to enable this skill, you can do so by finding it in the Skills section of your Alexa app.",
+  "I couldn’t find any enabled video skills. Go to the Alexa app to find and enable Video Skills and Devices.",
+  "Amazon Music is not supported on this device.",
+  "You don't have any notifications.",
+  "I don't have anything to resume. Let me know what you'd like to play.  ",
+  "Hello.",
+  "Would you like to add it to your cart?",
+  "Hi!",
+  "Flow from Deezer.",
+  "Thanks for your feedback.",
+  "Messaging with Alexa is not supported on this device. You can use the Alexa app instead.",
+  "Here’s your flash briefing.",
+  "Alright.",
+  "I couldn't find any linked video skills that can play that. Go to the music, video and books section of the Alexa app to link video skills and devices.",
+  "No worries.",
+  "I can't find that skill in your enabled skills. To find skills, please go to the Skills section of the Alexa App.",
+  "Nothing is currently playing.",
+  "Which skill do you want to enable?",
+  "Thanks!",
+  "Bye for now.",
+  "My name is Alexa.",
+  "Goodbye.",
+  "OK, well I'll be here when you need me.",
+  "Any time.",
+  "Okay.",
+  "You're welcome!",
+  "Of course.",
+  "I don't have an opinion on that.",
+  "Would you like to add to cart?",
+  "I couldn't find any enabled video skills that can play that. Go to the Alexa app to manage your video skills and devices.",
+  "There are no timers set."];
+  
+  //skill responses that are almost always errors
+  var reds = [
+  "There was a problem with the requested skill's response",
+  "Sorry, something went wrong.",
+  "I'm not sure what went wrong.",
+  "The requested skill took too long to respond"];
+
+
+function adventureMagic() {
+  var sheet = SpreadsheetApp.getActiveSheet();
+
+  // CHANGE THIS URL 
+  var doc = DocumentApp.openByUrl('https://docs.google.com/document/d/1GTjftjyJ5LNj20-0Qo-L8bKfa4ybD9hc_ggt2DclA8Y/edit');
+  // CHANGE THIS URL
+  
+  var body = doc.getBody();
+
+  
+  //makes a 2-D array of the spreadsheet values
+  var values = sheet.getDataRange().getValues();
+  body.appendParagraph('');
+  var i = 1;
+  
+  var textOfBody = body.getText();
+  var matches = textOfBody.match(/USER \d+/g);
+  var user_num = parseInt(matches[matches.length - 1].substring(5)) + 1;
+
+  var old_session_id = 0;
+  while(!!values[i]){
+    var session_id = values[i][3];
+    
+    //if we've moved to a new user
+    if(session_id != old_session_id){
+      var user_par;
+      user_par = body.appendParagraph("USER " + user_num);
+
+      
+      // write "User N" in big bold black letters
+      var user_text = user_par.editAsText();
+      user_par.setLineSpacing(1.15);
+      user_text.setFontFamily(font);
+      user_text.setBold(true);
+      user_text.setFontSize(18);
+      user_text.setForegroundColor("#000000");
+      
+      // write time-stamp in biggish grey letters
+      var timestamp_par = body.appendParagraph(values[i][2] + "\n");
+      var stamp_text = timestamp_par.editAsText();
+      timestamp_par.setLineSpacing(1.15);
+      stamp_text.setBold(false);
+      stamp_text.setFontFamily(font);
+      stamp_text.setForegroundColor("#979797");
+      stamp_text.setFontSize(13.5);
+      old_session_id = session_id;
+      
+      user_num++;
+    }
+    
+    // skip empty lines
+    if(values[i][0] == ""){
+    }
+    
+    // user-side interactions go on the left, 12pt open sans, black
+    else if(values[i][1] == 0){
+      var input_par = body.appendParagraph(values[i][0]);
+      var input = input_par.editAsText();
+      input.setFontFamily(font);
+      input.setForegroundColor("#000000");
+      input.setFontSize(12);
+      input_par.setLineSpacing(2);
+      
+    }
+    
+    // Alexa-side interactions go on the right, 12pt open sans, cherry, pink, or blue colored depending
+    else{
+      var response_par = body.appendParagraph(values[i][0]);
+      var response = response_par.editAsText();
+      response.setFontFamily(font);
+      response.setFontSize(12);
+      response_par.setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
+      response_par.setLineSpacing(2);
+      
+      // if it's a common core Alexa response
+      if(blues.indexOf(response.getText()) >= 0){
+        response.setForegroundColor("#0000ff");
+      }
+      
+      // if it's a common error response
+      else if(reds.indexOf(response.getText()) >= 0){
+        response.setForegroundColor("#ff0000");
+      }
+      
+      // hopefully this is only a skill response
+      else{
+        response.setForegroundColor("#dd7e6b");
+      }
+    }
+    
+    i++;
+  }
+  
+  doc.saveAndClose();
+}
