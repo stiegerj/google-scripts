@@ -1,0 +1,46 @@
+/*
+to-do:
+figure out what is going on with line breaks
+skip first user, auto insert line break?
+what about new if that's detecting if # diff
+*/
+
+//run onOpen to get the menu header on the Google Doc
+function onOpen(){
+  DocumentApp.getUi().createMenu("Re-do User Numbers").addItem("Update User Numbers","updateUserNumbers").addToUi();
+}
+
+
+function updateUserNumbers() {
+  var font = "Open Sans";
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paras = body.getParagraphs();
+  var i = 0;
+  var para;
+  var textObj;
+  var text;
+  var user_num = 1;
+  while(i < paras.length){
+    para = paras[i];
+    text = para.getText();
+    var regex = /USER \d+/;
+
+    if(regex.test(text)){
+      if(text.indexOf("USER " + user_num) !== -1){
+        user_num++;
+      }
+      else{
+        para.setText("\nUSER " + user_num);
+        para.setFontFamily(font);
+        para.setBold(true);
+        para.setFontSize(18);
+        para.setForegroundColor("#000000");
+        user_num++;
+      }
+    }
+    
+    i++;
+  }
+  doc.saveAndClose();
+}
