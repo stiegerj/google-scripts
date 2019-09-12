@@ -1,0 +1,41 @@
+// this is fairly niche/deprecated, but has some stuff i may want to look at in the future for reference
+
+
+var doc = DocumentApp.getActiveDocument();
+var body = doc.getBody();
+var paras = body.getParagraphs();
+
+function onOpen(){
+  DocumentApp.getUi().createMenu("Align Transcripts").addItem("Align transcripts","formatTranscripts").addToUi();
+}
+
+
+function formatTranscripts(){
+  var i = 0;
+  var para;
+  var textObj;
+  var text;
+  var firstLetter;
+  while(i < paras.length){
+    para = paras[i];
+    var test = JSON.stringify(DocumentApp.HorizontalAlignment.LEFT);
+    firstLetter = para.getText().charAt(0);
+    if(JSON.stringify(para.getAlignment()) != JSON.stringify(DocumentApp.HorizontalAlignment.RIGHT) && (firstLetter === firstLetter.toUpperCase() && (para.getText().charAt(para.getText().length-1) == '?' || para.getText().charAt(para.getText().length-1) == '.'))){
+      formatParagraph(para,"#dd7e6b");
+      formatParagraph(paras[i-1],"#000000");
+    }
+    else if(para.getText() == "[Media File]"){
+      para.setText("[error beep]");
+      formatParagraph(para,"#0000ff");
+      formatParagraph(paras[i-1],"#000000");
+    }
+    i++;
+  }
+  doc.saveAndClose();
+}
+
+function formatParagraph(paragraph,color){
+  text = paragraph.editAsText();
+  paragraph.setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
+  text.setForegroundColor(color);
+}
